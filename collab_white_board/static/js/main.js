@@ -33,7 +33,7 @@ canvas.addEventListener('mouseout', () => drawing = false);
 
 canvas.addEventListener('mousemove', (event) => {
     if (drawing && isErasing) {
-        erase(event); 
+        erase(event);
     } else if (drawing) {
         draw(event);
     }
