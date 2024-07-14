@@ -8,12 +8,23 @@ canvas.height = window.innerHeight * 0.9;
 let drawing = false;
 let lastX = 0;
 let lastY = 0;
+let color = context.strokeStyle;
+let penSize = context.lineWidth;
 let eraserSize = context.lineWidth;
 let isErasing = false;
 
 socket.on('draw', (data) => {
-    const { x0, y0, x1, y1, color } = data;
-    drawLine(x0, y0, x1, y1, color, false);
+    const { x0, y0, x1, y1, color, penSize } = data;
+    drawLine(x0, y0, x1, y1, color, penSize, false);
+});
+
+socket.on('erase', (data) => {
+    const { x, y, eraserSize } = data;
+    eraseSpot(x, y, eraserSize, false);
+});
+
+socket.on('clear', () => {
+    clearCanvasAll(false);
 });
 
 /* ********************* Listeners ********************* */
@@ -41,12 +52,7 @@ canvas.addEventListener('mousemove', (event) => {
 
 document.getElementById('colorPicker').addEventListener('change', () => {
     context.strokeStyle = document.getElementById('colorPicker').value;
-    if (color === '#ffffff' || color.toLowerCase() === 'white') {
-        isErasing = true;
-    } else {
-        isErasing = false;
-        context.strokeStyle = color;
-    }
+    color = context.strokeStyle;
 });
 
 document.getElementById('eraserToggle').addEventListener('change', (event) => {
@@ -55,6 +61,7 @@ document.getElementById('eraserToggle').addEventListener('change', (event) => {
 
 document.getElementById('sizePicker').addEventListener('change', () => {
     context.lineWidth = document.getElementById('sizePicker').value;
+    penSize = context.lineWidth;
 });
 
 document.getElementById('gridToggle').addEventListener('change', () => {
@@ -71,34 +78,55 @@ document.getElementById('eraserToggle').addEventListener('change', (event) => {
 function draw(event) {
     if (!drawing || isErasing) return;
     const [x, y] = getMousePos(event);
-    drawLine(lastX, lastY, x, y, context.strokeStyle, true);
+    drawLine(lastX, lastY, x, y, color, penSize, true);
     [lastX, lastY] = [x, y];
 }
 //Draws
-function drawLine(x0, y0, x1, y1, color, emit = true) {
+function drawLine(x0, y0, x1, y1, color, penSize, emit = true) {
     context.beginPath();
     context.moveTo(x0, y0);
     context.lineTo(x1, y1);
-    context.strokeStyle = context.color;
-    context.lineWidth = context.lineWidth;
+    context.strokeStyle = color;
+    context.lineWidth = penSize;
     context.lineCap = 'round';
     context.stroke();
     context.closePath();
 
     if (!emit) return;
 
-    socket.emit('draw', { x0, y0, x1, y1, color });
+    socket.emit('draw', { x0, y0, x1, y1, color, penSize });
+}
+
+function eraseSpot(x, y, eraserSize, emit = true) {
+
+    context.clearRect(x - eraserSize / 2, y - eraserSize / 2, eraserSize, eraserSize)
+
+
+    if (!emit) return;
+
+    socket.emit('erase', { x, y, eraserSize });
 }
 //Erases the pen drawings
 function erase(event) {
     const [x, y] = getMousePos(event);
     eraserSize = context.lineWidth;
-    context.clearRect(x - eraserSize / 2, y - eraserSize / 2, eraserSize, eraserSize);
+    eraseSpot(x, y, eraserSize, true);
 }
+
 //clears the Canvas
-function clearCanvas() {
-    context.clearRect(0, 0, canvas.width, canvas.height);
+function clearCanvas(clearCanvas = true) {
+    clearCanvasAll(emit = true);
+
 }
+
+//Clears the canvas
+function clearCanvasAll(emit = true) {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    if (!emit) return;
+    socket.emit('clear');
+}
+
+
 //Get mouse Position
 function getMousePos(event) {
     const rect = canvas.getBoundingClientRect();
