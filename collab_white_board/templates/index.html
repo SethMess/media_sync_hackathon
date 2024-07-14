@@ -2,16 +2,56 @@
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collaborative Whiteboard</title>
     <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            justify-content: center;
+            background-color: #f0f0f0;
+        }
+
+        .toolbar {
+            position: absolute;
+            top: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         canvas {
-            border: 1px solid black;
+            border: 1px solid #000;
+            background-color: #fff;
+            margin-top: 20px; /* Adjust margin as needed */
+        }
+        .grid-overlay {
+            background-image:
+                linear-gradient(90deg, transparent 49px, #ddd 1px),
+                linear-gradient(0deg, transparent 49px, #ddd 1px);
+            background-size: 50px 50px; /* Adjust grid size as needed */
+            background-position: 0 0, 0 0; /* Start position of the grid */
         }
     </style>
 </head>
 
 <body>
     <h1>Collaborative Whiteboard</h1>
+    <div class="toolbar">
+        <button onclick="clearCanvas()">Clear</button>
+        <label for="colorPicker">Color: </label>
+        <input type="color" id="colorPicker" value="#000000">
+        <label for="sizePicker">Size: </label>
+        <input type="number" id="sizePicker" value="5" min="1" max="50">
+        <label for="eraserToggle">Eraser</label>
+        <input type="checkbox" id="eraserToggle">
+        <label for="gridToggle">Show Grid</label>
+        <input type="checkbox" id="gridToggle">
+    </div>
     <canvas id="whiteboard" width="800" height="600"></canvas>
 
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
