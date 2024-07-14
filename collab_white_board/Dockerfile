@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.9
+FROM python:3.9-slim
 
 # Set the working directory
 WORKDIR /app
@@ -18,4 +18,3 @@ ENV NAME=World
 
 # Run app.py when the container launches
 CMD ["python", "app.py"]
-# CMD ["gunicorn", "-k", "eventlet", "-w", "1", "app:app", "--bind", "0.0.0.0:5000"]
